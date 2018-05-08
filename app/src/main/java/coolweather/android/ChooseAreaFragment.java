@@ -1,10 +1,12 @@
 package coolweather.android;
 
 import android.app.ProgressDialog;
+
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
 import android.support.v4.app.Fragment;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +33,8 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
+
+
 public class ChooseAreaFragment extends Fragment {
     public static final int LEVEL_PROVINCE = 0;
     public static final int LEVEL_CITY = 1;
@@ -51,9 +55,9 @@ public class ChooseAreaFragment extends Fragment {
     private int currentLevel;
 
 
-    @Nullable
+
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater,  ViewGroup container,  Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.choose_area,container,false);
         titleText = (TextView) view.findViewById(R.id.title_text);
         backButton =(Button) view.findViewById(R.id.back_button);
@@ -65,7 +69,7 @@ public class ChooseAreaFragment extends Fragment {
 
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+    public void onActivityCreated( Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -113,26 +117,27 @@ public class ChooseAreaFragment extends Fragment {
             currentLevel = LEVEL_PROVINCE;
         }else{
             String address = "http://guolin.tech/api/china";
-            queryFromService(address,"province");
+            queryFromServer(address,"province");
         }
     }
 
     private void queryCities() {
         titleText.setText(selectedProvince.getProvinceName());
         backButton.setVisibility(View.VISIBLE);
-        cityList = DataSupport.where("provinced = ?",String.valueOf(selectedProvince.getId())).find(City.class);
+        cityList = DataSupport.where("provinceid = ?",String.valueOf(selectedProvince.getId())).find(City.class);
         if(cityList.size() > 0){
             dataList.clear();
-            for(City city:cityList){
+                for(City city:cityList){
                 dataList.add(city.getCityName());
+                Log.d("ChooseAreaActivity",city.getCityName());
             }
             adapter.notifyDataSetChanged();
             listView.setSelection(0);
             currentLevel = LEVEL_CITY;
         }else{
             int provinceCode = selectedProvince.getProvinceCode();
-            String address = "http://guolin.tech/api/china" + provinceCode;
-            queryFromService(address,"city");
+            String address = "http://guolin.tech/api/china/"  + provinceCode;
+            queryFromServer(address,"city");
         }
     }
 
@@ -151,8 +156,8 @@ public class ChooseAreaFragment extends Fragment {
         }else{
             int provinceCode = selectedProvince.getProvinceCode();
             int cityCode = selectedCity.getCityCode();
-            String address = "http://guolin.tech/api/china" + provinceCode + "/" + cityCode;
-            queryFromService(address,"county");
+            String address = "http://guolin.tech/api/china/" +  provinceCode + "/" + cityCode;
+            queryFromServer(address,"county");
         }
 
 
@@ -160,20 +165,10 @@ public class ChooseAreaFragment extends Fragment {
 
 
 
-    private void queryFromService(String address,final String type) {
+    private void queryFromServer(String address,final String type) {
         showProgressDialog();
         HttpUtil.sendOkHttpRequest(address, new Callback() {
-            @Override
-            public void onFailure(Call call,IOException e)  {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        closeProgressDialog();
-                        Toast.makeText(getContext(),"加载失败",Toast.LENGTH_SHORT).show();
-                    }
-                });
 
-            }
             @Override
             public void onResponse(Call call,Response response) throws IOException {
                 String responseText = response.body().string();
@@ -181,12 +176,14 @@ public class ChooseAreaFragment extends Fragment {
                 if("province".equals(type))
                 {
                     result = Utility.handleProvinceResponse(responseText);
-                }else if("county".equals(type))
-                {
-                    result = Utility.handleCityResponse(responseText);
                 }else if("city".equals(type))
                 {
                     result = Utility.handleCityResponse(responseText);
+                    selectedProvince.getId();
+                }else if("county".equals(type))
+                {
+                    result = Utility.handleCityResponse(responseText);
+                    selectedCity.getId();
                 }
                 if(result){
                     getActivity().runOnUiThread(new Runnable() {
@@ -198,13 +195,29 @@ public class ChooseAreaFragment extends Fragment {
                                 queryProvinces();
                             }else if("city".equals(type))
                             {
-
+                                queryCities();
+                            }else if("county".equals(type))
+                            {
+                                queryCounties();
                             }
                         }
                     });
                 }
 
             }
+
+            @Override
+            public void onFailure(Call call, IOException e) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        closeProgressDialog();
+                        Toast.makeText(getContext(), "加载失败", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            }
+
 
 
         });
@@ -229,7 +242,4 @@ public class ChooseAreaFragment extends Fragment {
             progressDialog.dismiss();
         }
     }
-
-
-
 }
