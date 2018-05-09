@@ -5,15 +5,15 @@ import org.litepal.crud.DataSupport;
 public class County extends DataSupport {
     private int id;
     private int cityId;
-    private String countName;
+    private String countyName;
     private String weatherId;
 
-    public String getCountName() {
-        return countName;
+    public String getCountyName() {
+        return countyName;
     }
 
     public void setCountName(String countName) {
-        this.countName = countName;
+        this.countyName = countName;
     }
 
     public int getId() {
