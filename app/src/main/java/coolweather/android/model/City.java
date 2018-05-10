@@ -1,21 +1,31 @@
-package coolweather.android.db;
+package coolweather.android.model;
 
-import org.litepal.crud.DataSupport;
 
-public class City extends DataSupport {
+
+public class City  {
     private int id;
-    private String provinceId;
+    private int provinceId;
     private String cityName;
-    private int cityCode;
+    private String cityCode;
 
 
-    public String getProvinceId() {
+    public int getProvinceId() {
         return provinceId;
     }
-    public void setProvinceId(String provinceId) {
+    public void setProvinceId(int provinceId) {
         this.provinceId = provinceId;
     }
+
+    public String getCityCode() {
+        return cityCode;
+    }
+
+    public void setCityCode(String cityCode) {
+        this.cityCode = cityCode;
+    }
+
     public String getCityName() {
+
         return cityName;
     }
 
@@ -25,13 +35,6 @@ public class City extends DataSupport {
 
 
 
-    public int getCityCode() {
-        return cityCode;
-    }
-
-    public void setCityCode(int cityCode) {
-        this.cityCode = cityCode;
-    }
 
     public int getId() {
         return id;
